@@ -902,7 +902,9 @@ button {
   color: var(--ink);
   font-family: "Inter", sans-serif;
   font-size: 13px;
-  transition: border-color 150ms ease, box-shadow 150ms ease,
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
     background 150ms ease;
 }
 
@@ -1097,6 +1099,8 @@ button {
 
 .pass-identity {
   margin-top: 15px;
+  position: relative;
+  z-index: 2;
 }
 
 .identity-label {
@@ -1171,6 +1175,7 @@ button {
   left: 24px;
   right: 24px;
   bottom: 44px;
+  z-index: 3;
 }
 
 .pass-id {
@@ -1192,6 +1197,23 @@ button {
 .pass-footer {
   left: 24px;
   right: 24px;
+}
+
+/* Highlight the Goa hashtag */
+.pass-footer > :first-child {
+  display: inline-block;
+  padding: 3px 6px;
+  background: var(--pink);
+  color: var(--white);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  transform: rotate(-2deg);
+}
+
+/* Stronger Goa stamp */
+.pass-stamp {
+  border-width: 2px;
+  box-shadow: inset 0 0 0 2px rgba(247, 37, 133, 0.12);
 }
 
 .preview-meta {
@@ -1526,46 +1548,139 @@ button {
     min-height: 535px;
   }
 
+  /* ------------------------------
+     MOBILE FIELD PASS FIX
+  ------------------------------ */
+
   .field-pass {
     padding: 18px;
+    overflow: hidden;
   }
 
   .pass-photo {
-    height: 155px;
+    height: 145px;
+  }
+
+  .pass-identity {
+    margin-top: 13px;
+    padding-bottom: 92px;
+  }
+
+  .identity-label {
+    font-size: 6px;
   }
 
   .pass-identity h3 {
-    font-size: 25px;
+    font-size: 24px;
+    max-width: 175px;
+    margin-top: 5px;
+    margin-bottom: 4px;
   }
 
   .pass-stack {
-    max-width: 175px;
+    max-width: 165px;
     font-size: 7px;
+    line-height: 1.25;
   }
 
   .pass-title {
-    max-width: 175px;
+    max-width: 160px;
+    margin-top: 7px;
+    padding: 5px 6px;
+    font-size: 6.5px;
   }
 
   .pass-line {
-    max-width: 175px;
-    font-size: 10px;
+    max-width: 165px;
+    margin-top: 8px;
+    font-size: 9px;
+    line-height: 1.12;
   }
 
+  /* Move signal slightly upward */
   .pass-signal {
     right: 18px;
-    top: 300px;
+    top: 292px;
   }
 
+  .pass-signal strong {
+    font-size: 15px;
+  }
+
+  /* Keep ID + QR in their own bottom zone */
   .pass-bottom {
     left: 18px;
     right: 18px;
+    bottom: 43px;
+    align-items: flex-end;
   }
 
+  .pass-id {
+    max-width: 145px;
+  }
+
+  .pass-id span {
+    font-size: 5.5px;
+  }
+
+  .pass-id strong {
+    font-size: 9px;
+    line-height: 1.1;
+  }
+
+  .pass-id small {
+    margin-top: 3px;
+    font-size: 5.5px;
+    line-height: 1.15;
+  }
+
+  .qr-wrap {
+    padding: 4px;
+  }
+
+  .qr-wrap canvas,
+  .qr-wrap img {
+    width: 82px !important;
+    height: 82px !important;
+    max-width: 82px;
+    max-height: 82px;
+  }
+
+  /* Footer gets its own clean row */
   .pass-footer {
     left: 18px;
     right: 18px;
+    bottom: 15px;
     font-size: 5px;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .pass-footer > :first-child {
+    padding: 2px 5px;
+    font-size: 5px;
+  }
+
+  .pass-footer > :last-child {
+    text-align: right;
+    font-size: 5px;
+  }
+
+  /* Smaller stamp so it doesn't cover QR */
+  .pass-stamp {
+    width: 48px;
+    height: 48px;
+    right: 16px;
+    bottom: 91px;
+    font-size: 6px;
+  }
+
+  .pass-divider {
+    margin: 10px 0 8px;
+  }
+
+  .preview-meta {
+    font-size: 6px;
   }
 
   .share-area {
@@ -1575,5 +1690,78 @@ button {
   .share-button,
   .copy-button {
     width: 100%;
+  }
+}
+
+/* =========================================
+   EXTRA SMALL PHONES
+========================================= */
+
+@media (max-width: 380px) {
+  .field-pass {
+    width: 88vw;
+    padding: 15px;
+  }
+
+  .pass-photo {
+    height: 135px;
+  }
+
+  .pass-identity {
+    padding-bottom: 88px;
+  }
+
+  .pass-identity h3 {
+    font-size: 22px;
+    max-width: 155px;
+  }
+
+  .pass-stack {
+    max-width: 150px;
+    font-size: 6.5px;
+  }
+
+  .pass-title {
+    max-width: 145px;
+  }
+
+  .pass-line {
+    max-width: 150px;
+    font-size: 8px;
+  }
+
+  .pass-signal {
+    right: 15px;
+    top: 275px;
+  }
+
+  .pass-bottom {
+    left: 15px;
+    right: 15px;
+    bottom: 41px;
+  }
+
+  .pass-id {
+    max-width: 125px;
+  }
+
+  .qr-wrap canvas,
+  .qr-wrap img {
+    width: 74px !important;
+    height: 74px !important;
+  }
+
+  .pass-stamp {
+    width: 43px;
+    height: 43px;
+    right: 14px;
+    bottom: 83px;
+    font-size: 5px;
+  }
+
+  .pass-footer {
+    left: 15px;
+    right: 15px;
+    bottom: 13px;
   }
 }
