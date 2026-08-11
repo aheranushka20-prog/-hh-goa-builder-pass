@@ -1,28 +1,45 @@
 import { useRef, useState } from "react";
-import { QRCodeSVG } from "qrcode.react";
 import { toPng } from "html-to-image";
 import "./App.css";
 
+const STACKS = [
+  "AI",
+  "WEB",
+  "DESIGN",
+  "DATA",
+  "HARDWARE",
+  "STARTUPS",
+];
+
 function App() {
-  const [started, setStarted] = useState(false);
+  const passRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   const [name, setName] = useState("");
   const [builderTitle, setBuilderTitle] = useState("");
-  const [builderBuild, setBuilderBuild] = useState("");
   const [builderLine, setBuilderLine] = useState("");
-  const [photo, setPhoto] = useState(null);
+  const [photo, setPhoto] = useState("");
+  const [selectedStacks, setSelectedStacks] = useState([]);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [copied, setCopied] = useState(false);
 
-  const passRef = useRef(null);
+  const builderId = "HH-26-" + Math.random().toString(36).substring(2, 8).toUpperCase();
 
-  const [builderId] = useState(
-    `HH-26-${Math.random()
-      .toString(36)
-      .substring(2, 8)
-      .toUpperCase()}`
-  );
+  const toggleStack = (stack) => {
+    setSelectedStacks((current) => {
+      if (current.includes(stack)) {
+        return current.filter((item) => item !== stack);
+      }
 
-  const handlePhotoUpload = (event) => {
+      if (current.length >= 3) {
+        return current;
+      }
+
+      return [...current, stack];
+    });
+  };
+
+  const handlePhoto = (event) => {
     const file = event.target.files?.[0];
 
     if (!file) return;
@@ -33,906 +50,596 @@ function App() {
       setPhoto(reader.result);
     };
 
-    reader.onerror = () => {
-      alert("Unable to load this photo. Please try another image.");
-    };
-
     reader.readAsDataURL(file);
   };
 
   const downloadPass = async () => {
-    if (!passRef.current) return;
+    if (!passRef.current || !name.trim() || selectedStacks.length === 0) {
+      return;
+    }
 
     try {
       setIsDownloading(true);
 
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
       const dataUrl = await toPng(passRef.current, {
         cacheBust: true,
         pixelRatio: 3,
-        backgroundColor: "#f7f0df",
+        backgroundColor: "#f5e8c8",
       });
 
       const link = document.createElement("a");
-
-      const safeName =
-        name.trim().replace(/\s+/g, "-") || "HH-Goa";
-
-      link.download = `${safeName}-HH-Goa-Builder-Pass.png`;
+      link.download = `${name.trim().replace(/\s+/g, "-")}-HHGOA-Builder-Pass.png`;
       link.href = dataUrl;
-
-      document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
     } catch (error) {
       console.error("Unable to download pass:", error);
-
-      alert(
-        "Something went wrong while creating your pass. Please try again."
-      );
     } finally {
       setIsDownloading(false);
     }
   };
 
-  const shareOnX = () => {
-    const shareText =
-      "I'm building in Goa with Hacker House 2026. Meet my Builder Identity. #FrameInGoa";
-
-    const xUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-      shareText
-    )}`;
-
-    window.open(xUrl, "_blank", "noopener,noreferrer");
-  };
-
-  const copyShareText = async () => {
+  const sharePass = async () => {
     const text =
-      "I'm building in Goa with Hacker House 2026. Meet my Builder Identity. #FrameInGoa";
+      "I’m building in Goa with Hacker House 2026. Meet my Builder Identity. #FrameInGoa";
 
-    try {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Hacker House Goa Builder Pass",
+          text,
+        });
+      } catch {
+        // User cancelled sharing.
+      }
+    } else {
       await navigator.clipboard.writeText(text);
-      alert("Share text copied!");
-    } catch {
-      alert(text);
+      setCopied(true);
+
+      setTimeout(() => {
+        setCopied(false);
+      }, 1800);
     }
   };
 
-  const canClaim =
-    name.trim() &&
-    builderTitle.trim() &&
-    builderBuild.trim();
+  const copyId = async () => {
+    await navigator.clipboard.writeText(builderId);
 
-  if (started) {
-    return (
-      <main className="builder-page">
-        {/* HEADER */}
-        <header className="builder-header">
-          <button
-            className="back-button"
-            onClick={() => setStarted(false)}
-          >
-            ← Exit field guide
-          </button>
+    setCopied(true);
 
-          <div className="builder-header-center">
-            <span>HH GOA 2026</span>
-            <strong>BUILDER FIELD GUIDE</strong>
+    setTimeout(() => {
+      setCopied(false);
+    }, 1800);
+  };
+
+  const stackText =
+    selectedStacks.length > 0
+      ? selectedStacks.join(" • ")
+      : "YOUR STACK";
+
+  return (
+    <main className="app">
+      <div className="grain" />
+
+      {/* =====================================================
+          HEADER
+      ===================================================== */}
+
+      <header className="builder-header">
+        <button className="back-button" type="button">
+          ← BACK
+        </button>
+
+        <div className="builder-header-center">
+          <span>HACKER HOUSE</span>
+          <strong>GOA · 2026</strong>
+        </div>
+
+        <div className="builder-progress">
+          <span>01</span> / 01
+        </div>
+      </header>
+
+      {/* =====================================================
+          HERO / WORLD
+      ===================================================== */}
+
+      <section className="builder-world">
+        <div className="builder-world-top">
+          <div className="world-label">
+            <span className="pink-line" />
+            BUILDER DETAILS
           </div>
 
-          <div className="builder-progress">
-            03 <span>/</span> 03
-          </div>
-        </header>
+          <h1>
+            Put yourself
+            <br />
+            <em>on the map.</em>
+          </h1>
 
-        <section className="builder-layout">
+          <p>
+            
+            <br />
+          
+          </p>
 
-          {/* =========================
-              LEFT EDITOR
-          ========================= */}
+          <div className="background-code code-1">{"< >"}</div>
+          <div className="background-code code-2">{"{ }"}</div>
+          <div className="background-code code-3">{"//"}</div>
+          <div className="background-code code-4">{"< / >"}</div>
+        </div>
 
-          <div className="builder-editor">
+        {/* Illustrated Goa landscape */}
+        <div className="builder-jungle">
+          <div className="illustration">
+            <div className="illustration-sun" />
 
-            {/* INTRO */}
-            <div className="editor-intro">
-              <span className="section-kicker">
-                FIELD GUIDE
-              </span>
+            <div className="illustration-mountain mountain-back" />
+            <div className="illustration-mountain mountain-front" />
 
-              <h1>
-                Build your
-                <br />
-                <em>identity.</em>
-              </h1>
-
-              <p>
-                Three signals. One field pass.
-                <br />
-                Make yours worth remembering.
-              </p>
+            <div className="illustration-water">
+              <span />
+              <span />
+              <span />
             </div>
 
-            {/* =========================
-                01 / FACE
-            ========================= */}
+            <div className="illustration-ground" />
 
-            <div className="builder-step">
-              <div className="step-number">
-                01 / FACE
+            <div className="illustration-house house-left">
+              <div className="house-roof" />
+              <div className="house-body">
+                <i />
+                <i />
+                <i />
               </div>
+            </div>
 
-              <h2>
-                Put yourself on the map.
-              </h2>
+            <div className="illustration-house house-right">
+              <div className="house-roof" />
+              <div className="house-body">
+                <i />
+                <i />
+                <i />
+              </div>
+            </div>
+
+            <div className="illustration-palm palm-left">
+              <div className="palm-leaves">
+                <i />
+                <i />
+                <i />
+                <i />
+                <i />
+                <i />
+              </div>
+              <div className="palm-trunk" />
+            </div>
+
+            <div className="illustration-palm palm-right">
+              <div className="palm-leaves">
+                <i />
+                <i />
+                <i />
+                <i />
+                <i />
+                <i />
+              </div>
+              <div className="palm-trunk" />
+            </div>
+
+            <div className="tiny-leaf leaf-a">✦</div>
+            <div className="tiny-leaf leaf-b">✦</div>
+            <div className="tiny-leaf leaf-c">✦</div>
+          </div>
+        </div>
+
+        {/* =====================================================
+            CONTENT
+        ===================================================== */}
+
+        <div className="builder-content">
+
+          {/* =================================================
+              LEFT EDITOR
+          ================================================= */}
+
+          <section className="builder-editor">
+            <div className="editor-stamp">
+              <span>BUILDERS</span>
+              <strong>GOA</strong>
+              <small>2026</small>
+            </div>
+
+            {/* STEP 01 */}
+            <div className="builder-step">
+              <div className="step-number">01 / FACE</div>
+
+              <h2>Your portrait.</h2>
 
               <p className="step-copy">
-                Add the face behind the build.
+                
               </p>
 
               <div className="photo-upload-area">
-
-                <div
+                <button
+                  type="button"
                   className={`photo-upload-preview ${
                     photo ? "has-photo" : ""
                   }`}
+                  onClick={() => fileInputRef.current?.click()}
                   style={
                     photo
                       ? {
-                          backgroundImage: `url("${photo}")`,
+                          backgroundImage: `url(${photo})`,
                         }
-                      : {}
+                      : undefined
                   }
                 >
                   {!photo && (
                     <>
-                      <span className="photo-cross">
-                        +
-                      </span>
-
-                      <span>
-                        YOUR PHOTO
-                      </span>
+                      <span className="photo-cross">+</span>
+                      <span>ADD PHOTO</span>
+                      <small>JPG / PNG</small>
                     </>
                   )}
-                </div>
+
+                  {photo && (
+                    <span className="photo-overlay">
+                      CHANGE PHOTO
+                    </span>
+                  )}
+                </button>
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  hidden
+                  onChange={handlePhoto}
+                />
 
                 <div className="photo-upload-info">
-                  <span>
-                    {photo
-                      ? "PHOTO READY ✓"
-                      : "PORTRAIT / JPG / PNG"}
-                  </span>
+                  <span>{photo ? "PHOTO READY." : "YOUR PORTRAIT"}</span>
 
-                  <label className="small-action">
-                    {photo
-                      ? "CHANGE PHOTO"
-                      : "ADD PHOTO"}
-
-                    <input
-                      type="file"
-                      accept="image/png,image/jpeg,image/webp"
-                      onChange={handlePhotoUpload}
-                      hidden
-                    />
-                  </label>
+                  {photo && (
+                    <button
+                      type="button"
+                      className="small-action"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      CHANGE
+                    </button>
+                  )}
                 </div>
-
               </div>
             </div>
 
-            {/* =========================
-                02 / IDENTITY
-            ========================= */}
-
+            {/* STEP 02 */}
             <div className="builder-step">
-              <div className="step-number">
-                02 / IDENTITY
-              </div>
+              <div className="step-number">02 / BUILD</div>
 
-              <h2>
-                Who's behind the build?
-              </h2>
+              <h2>What are you building?</h2>
 
               <p className="step-copy">
-              
+                
               </p>
 
-              {/* NAME */}
+              <div className="stack-grid">
+                {STACKS.map((stack) => {
+                  const active = selectedStacks.includes(stack);
+
+                  return (
+                    <button
+                      key={stack}
+                      type="button"
+                      className={`stack-option ${
+                        active ? "active" : ""
+                      }`}
+                      onClick={() => toggleStack(stack)}
+                    >
+                      <span>{active ? "✓" : "+"}</span>
+                      {stack}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* STEP 03 */}
+            <div className="builder-step">
+              <div className="step-number">03 / SIGNAL</div>
+
+              <h2>Your signal.</h2>
+
+              <p className="step-copy">
+                
+              </p>
 
               <label className="field-label">
                 YOUR NAME
-
                 <input
-                  type="text"
-                  placeholder="e.g. Anushka Aher"
                   value={name}
-                  onChange={(e) =>
-                    setName(e.target.value)
-                  }
-                  maxLength={30}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. Anushka Aher"
+                  maxLength={35}
                 />
               </label>
-
-              {/* BUILDER TITLE */}
 
               <label className="field-label">
-                BUILDER TITLE
-
+                BUILDER ENERGY
                 <input
-                  type="text"
-                  placeholder="e.g. Creative Technologist"
                   value={builderTitle}
-                  onChange={(e) =>
-                    setBuilderTitle(e.target.value)
-                  }
+                  onChange={(e) => setBuilderTitle(e.target.value)}
+                  placeholder="e.g. Future Founder"
                   maxLength={30}
                 />
               </label>
+
+              <label className="field-label">
+                YOUR LINE
+                <input
+                  value={builderLine}
+                  onChange={(e) => setBuilderLine(e.target.value)}
+                  placeholder="e.g. Building things that matter."
+                  maxLength={65}
+                />
+              </label>
+
+              <div className="claim-area">
+                <button
+                  type="button"
+                  className="claim-button"
+                  disabled={
+                    isDownloading ||
+                    !name.trim() ||
+                    selectedStacks.length === 0
+                  }
+                  onClick={downloadPass}
+                >
+                  {isDownloading
+                    ? "CREATING PASS..."
+                    : "CLAIM MY FIELD PASS →"}
+                </button>
+
+                <p>
+                  
+                </p>
+              </div>
             </div>
+          </section>
 
-            {/* =========================
-                03 / BUILD
-            ========================= */}
+          {/* =================================================
+              RIGHT PREVIEW
+          ================================================= */}
 
-            <div className="builder-step">
-              <div className="step-number">
-                03 / BUILD
+          <section className="builder-preview-panel">
+            <div className="preview-heading">
+              <div>
+                <span className="section-kicker">LIVE PREVIEW</span>
+                <h2>Your field pass.</h2>
               </div>
 
-              <h2>
-                What do you build?
-              </h2>
-
-              <p className="step-copy">
-              
-                <br />
-              </p>
-
-              {/* BUILD */}
-
-              <label className="field-label">
-                YOUR BUILD
-
-                <input
-                  type="text"
-                  placeholder="e.g. AI tools, creative websites, robots..."
-                  value={builderBuild}
-                  onChange={(e) =>
-                    setBuilderBuild(e.target.value)
-                  }
-                  maxLength={65}
-                />
-              </label>
-
-              <p className="build-helper">
-              
-              </p>
-
-              {/* BUILDER LINE */}
-
-              <label className="field-label">
-                BUILDER LINE
-
-                <input
-                  type="text"
-                  placeholder="e.g. Turning weird ideas into useful things."
-                  value={builderLine}
-                  onChange={(e) =>
-                    setBuilderLine(e.target.value)
-                  }
-                  maxLength={65}
-                />
-              </label>
+              <div className="live-dot">
+                <i />
+                LIVE
+              </div>
             </div>
 
-            {/* =========================
-                CLAIM
-            ========================= */}
+            <div className="pass-stage">
+              <div className="pass-stage-sun" />
 
-            <div className="claim-area">
-              <button
-                className="claim-button"
-                onClick={downloadPass}
-                disabled={
-                  isDownloading || !canClaim
-                }
-              >
-                {isDownloading
-                  ? "CREATING YOUR PASS..."
-                  : "CLAIM MY FIELD PASS →"}
-              </button>
+              <div className="pass-stage-mountain mountain-one" />
+              <div className="pass-stage-mountain mountain-two" />
 
-              <p>
-              
-              </p>
-            </div>
+              <div className="pass-stage-wave">
+                ~ ~ ~
+              </div>
 
-          </div>
+              <div className="pass-shadow-sheet pink-sheet" />
+              <div className="pass-shadow-sheet yellow-sheet" />
 
-          {/* =========================
-              RIGHT PREVIEW
-          ========================= */}
+              {/* PASS */}
+              <article className="field-pass" ref={passRef}>
 
-          <div className="builder-preview-panel">
-            <div className="preview-sticky">
+                <div className="pass-corner top-left">✦</div>
+                <div className="pass-corner top-right">✦</div>
+                <div className="pass-corner bottom-left">✦</div>
+                <div className="pass-corner bottom-right">✦</div>
 
-              <div className="preview-heading">
-                <div>
-                  <span className="section-kicker">
-                    LIVE ARTIFACT
-                  </span>
+                <div className="pass-top">
+                  <div className="pass-brand">
+                    <div className="hh-mark">HH</div>
 
-                  <h2>
-                    Your field pass
-                  </h2>
+                    <div>
+                      <strong>HACKER HOUSE</strong>
+                      <span>GOA · 2026</span>
+                    </div>
+                  </div>
+
+                  <div className="field-number">
+                    <span>FIELD PASS</span>
+                    <strong>01</strong>
+                  </div>
                 </div>
 
-                <span className="live-dot">
-                  LIVE
-                </span>
-              </div>
-
-              <div className="pass-stage">
-
-                <div className="pass-shadow-sheet pink-sheet" />
-
-                <div className="pass-shadow-sheet yellow-sheet" />
+                <div className="pass-label">
+                  BUILDER FIELD PASS
+                </div>
 
                 <div
-                  className="field-pass signal-default"
-                  ref={passRef}
+                  className={`pass-photo ${
+                    photo ? "pass-photo-filled" : ""
+                  }`}
+                  style={
+                    photo
+                      ? {
+                          backgroundImage: `url(${photo})`,
+                        }
+                      : undefined
+                  }
                 >
-
-                  {/* CORNER MARKS */}
-
-                  <div className="pass-corner-mark top-left">
-                    +
-                  </div>
-
-                  <div className="pass-corner-mark top-right">
-                    +
-                  </div>
-
-                  <div className="pass-corner-mark bottom-left">
-                    +
-                  </div>
-
-                  <div className="pass-corner-mark bottom-right">
-                    +
-                  </div>
-
-                  {/* TOP */}
-
-                  <div className="pass-top">
-
-                    <div className="pass-brand">
-                      <span className="hh-mark">
-                        HH
-                      </span>
-
-                      <div>
-                        <strong>
-                          HACKER HOUSE
-                        </strong>
-
-                        <span>
-                          GOA / 2026
-                        </span>
-                      </div>
+                  {!photo && (
+                    <div className="pass-photo-placeholder">
+                      <span>YOUR</span>
+                      <strong>PORTRAIT</strong>
                     </div>
+                  )}
 
-                    <div className="field-number">
-                      FIELD
-                      <strong>01</strong>
-                    </div>
+                  <small className="photo-index">01 / 01</small>
+                </div>
 
-                  </div>
-
-                  {/* LABEL */}
-
-                  <div className="pass-label">
-                    BUILDER FIELD PASS
-                  </div>
-
-                  {/* PHOTO */}
-
-                  <div
-                    className={`pass-photo ${
-                      photo
-                        ? "pass-photo-filled"
-                        : ""
-                    }`}
-                    style={
-                      photo
-                        ? {
-                            backgroundImage: `url("${photo}")`,
-                          }
-                        : {}
-                    }
-                  >
-
-                    {!photo && (
-                      <div className="pass-photo-placeholder">
-                        <span>
-                          YOUR
-                        </span>
-
-                        <strong>
-                          PHOTO
-                        </strong>
-                      </div>
-                    )}
-
-                    <div className="photo-index">
-                      IMG / 01
-                    </div>
-
-                  </div>
-
-                  {/* IDENTITY */}
-
-                  <div className="pass-identity">
-
-                    <span className="identity-label">
-                      BUILDER IDENTITY
-                    </span>
-
-                    <h3>
-                      {name ||
-                        "YOUR NAME"}
-                    </h3>
-
-                    <div className="pass-stack">
-                      {builderBuild ||
-                        "AI · WEB · DESIGN"}
-                    </div>
-
-                    <div className="pass-title">
-                      {builderTitle ||
-                        "FUTURE BUILDER"}
-                    </div>
-
-                    <p className="pass-line">
-                      “
-                      {builderLine ||
-                        "Build something worth remembering."}
-                      ”
-                    </p>
-
-                  </div>
-
-                  {/* SIGNAL */}
-
-                  <div className="pass-signal">
-                    <span>
-                      SIGNAL
-                    </span>
-
-                    <strong>
-                      BUILD
-                    </strong>
-                  </div>
-
-                  <div className="pass-divider" />
-
-                  {/* BOTTOM */}
-
-                  <div className="pass-bottom">
-
-                    <div className="pass-id">
-                      <span>
-                        BUILDER ID
-                      </span>
-
-                      <strong>
-                        {builderId}
-                      </strong>
-
-                      <small>
-                        GOA · INDIA · 28—31 OCT 2026
-                      </small>
-                    </div>
-
-                    <div className="qr-wrap">
-                      <QRCodeSVG
-                        value={`HH Goa Builder ${builderId}`}
-                        size={64}
-                        bgColor="#f7f0df"
-                        fgColor="#10251d"
-                        level="M"
-                      />
-                    </div>
-
-                  </div>
-
-                  {/* FOOTER */}
-
-                  <div className="pass-footer">
-                    <span>
-                      #FRAMEINGOA
-                    </span>
-
-                    <span>
-                      BUILD · SHIP · CONNECT
-                    </span>
-                  </div>
-
-                  {/* STAMP */}
-
-                  <div className="pass-stamp">
-                    GOA
-                    <br />
+                <div className="pass-identity">
+                  <span className="identity-label">
                     BUILDER
+                  </span>
+
+                  <h3>
+                    {name.trim() || "Your Name"}
+                  </h3>
+
+                  <div className="pass-stack">
+                    {stackText}
                   </div>
 
+                  <div className="pass-title">
+                    {builderTitle.trim() || "BUILDER"}
+                  </div>
+
+                  <p className="pass-line">
+                    {builderLine.trim() ||
+                      "Build something worth remembering."}
+                  </p>
                 </div>
-              </div>
 
-              {/* META */}
+                <div className="card-goa-mark">
+                  <div className="mini-sun" />
+                  <div className="mini-wave">≈</div>
+                  <div className="mini-palm">
+                    <i />
+                    <i />
+                    <i />
+                  </div>
+                </div>
 
-              <div className="preview-meta">
-                <span>
-                  STATIC BUILDER ARTIFACT
-                </span>
+                <div className="pass-signal">
+                  <span>BUILD SIGNAL</span>
+                  <strong>GOA</strong>
+                </div>
 
-                <span>
-                  HH GOA / 2026
-                </span>
-              </div>
+                <div className="pass-divider" />
 
-              {/* SHARE */}
+                <div className="pass-bottom">
+                  <div className="pass-id">
+                    <span>BUILDER ID</span>
+                    <strong>{builderId}</strong>
+                    <small>HACKER HOUSE GOA · 2026</small>
+                  </div>
 
-              <div className="share-area">
+                  <div className="qr-wrap">
+                    <div className="fake-qr">
+                      <span />
+                      <span />
+                      <span />
+                      <span />
+                      <span />
+                      <span />
+                      <span />
+                      <span />
+                      <span />
+                    </div>
+                  </div>
+                </div>
 
-                <button
-                  className="share-button"
-                  onClick={shareOnX}
-                >
-                  𝕏 SHARE ON X
-                </button>
-
-                <button
-                  className="copy-button"
-                  onClick={copyShareText}
-                >
-                  COPY SHARE TEXT
-                </button>
-
-              </div>
-
-            </div>
-          </div>
-
-        </section>
-      </main>
-    );
-  }
-
-  /* =====================================================
-     LANDING PAGE
-  ===================================================== */
-
-  return (
-    <main className="app">
-
-      <div className="grain" />
-
-      {/* NAVBAR */}
-
-      <nav className="navbar">
-
-        <div className="brand">
-
-          <span className="brand-mark">
-            HH
-          </span>
-
-          <div className="brand-copy">
-            <strong>
-              HACKER HOUSE
-            </strong>
-
-            <span>
-              GOA / 2026
-            </span>
-          </div>
-
-        </div>
-
-        <div className="nav-center">
-          BUILDER FIELD GUIDE
-        </div>
-
-        <div className="nav-right">
-          <span>
-            28—31 OCT
-          </span>
-
-          <span className="nav-dot" />
-
-          <span>
-            GOA, INDIA
-          </span>
-        </div>
-
-      </nav>
-
-      {/* HERO */}
-
-      <section className="hero">
-
-        <div className="hero-copy">
-
-          <div className="hero-kicker">
-            <span className="yellow-marker" />
-
-            HH GOA 2026 / BUILDER FIELD GUIDE
-          </div>
-
-          <h1>
-            WHO ARE YOU
-            <br />
-            <span>
-              BUILDING AS?
-            </span>
-          </h1>
-
-          <p className="hero-description">
-            Goa is the setting.
-            <br />
-            <strong>
-              Building is the reason.
-            </strong>
-          </p>
-
-          <button
-            className="hero-button"
-            onClick={() => setStarted(true)}
-          >
-            <span>
-              FIND YOUR BUILDER IDENTITY
-            </span>
-
-            <strong>
-              →
-            </strong>
-          </button>
-
-          <div className="hero-trust">
-            <span>
-              ✦ NO SIGNUP
-            </span>
-
-            <span>
-              ✦ FREE
-            </span>
-
-            <span>
-              ✦ GENERATED LOCALLY
-            </span>
-          </div>
-
-          <p className="privacy-note">
-            Your photo stays in your browser.
-          </p>
-
-        </div>
-
-        {/* HERO ART */}
-
-        <div className="hero-art">
-
-          <div className="sun-disc" />
-
-          <div className="palm-line palm-one">
-            ⌁
-          </div>
-
-          <div className="palm-line palm-two">
-            ⌁
-          </div>
-
-          <div className="hero-sheet sheet-pink" />
-
-          <div className="hero-sheet sheet-yellow" />
-
-          <div className="hero-field-pass">
-
-            <div className="pass-corner-mark top-left">
-              +
-            </div>
-
-            <div className="pass-corner-mark top-right">
-              +
-            </div>
-
-            <div className="hero-pass-top">
-
-              <div className="pass-brand">
-
-                <span className="hh-mark">
-                  HH
-                </span>
-
-                <div>
-                  <strong>
-                    HACKER HOUSE
-                  </strong>
-
-                  <span>
-                    GOA / 2026
+                <div className="pass-footer">
+                  <span className="frame-goa">
+                    #FRAMEINGOA
                   </span>
+
+                  <span>BUILD · CONNECT · SHIP</span>
                 </div>
+              </article>
 
+              {/* decorative palms */}
+              <div className="stage-palm stage-palm-left">
+                <div className="palm-leaves">
+                  <i />
+                  <i />
+                  <i />
+                  <i />
+                  <i />
+                </div>
+                <div className="palm-trunk" />
               </div>
 
-              <div className="field-number">
-                FIELD
-                <strong>
-                  01
-                </strong>
+              <div className="stage-palm stage-palm-right">
+                <div className="palm-leaves">
+                  <i />
+                  <i />
+                  <i />
+                  <i />
+                  <i />
+                </div>
+                <div className="palm-trunk" />
               </div>
-
             </div>
 
-            <div className="pass-label">
-              BUILDER FIELD PASS
+            <div className="preview-meta">
+              <span>LOCAL GENERATION</span>
+              <span>NO DATA UPLOAD</span>
             </div>
 
-            <div className="hero-pass-photo">
+            <div className="share-area">
+              <button
+                type="button"
+                className="share-button"
+                onClick={sharePass}
+              >
+                {copied ? "COPIED ✓" : "SHARE YOUR PASS ↗"}
+              </button>
 
-              <div>
-                <span>
-                  YOUR
-                </span>
-
-                <strong>
-                  PHOTO
-                </strong>
-              </div>
-
-              <small>
-                IMG / 01
-              </small>
-
+              <button
+                type="button"
+                className="copy-button"
+                onClick={copyId}
+              >
+                COPY BUILDER ID
+              </button>
             </div>
-
-            <div className="hero-pass-info">
-
-              <span>
-                BUILDER IDENTITY
-              </span>
-
-              <h2>
-                Your Name
-              </h2>
-
-              <p>
-                AI · WEB · DESIGN
-              </p>
-
-              <strong>
-                FUTURE BUILDER
-              </strong>
-
-              <em>
-                “Build something worth remembering.”
-              </em>
-
-            </div>
-
-            <div className="hero-signal">
-              SIGNAL
-              <strong>
-                BUILD
-              </strong>
-            </div>
-
-            <div className="hero-pass-divider" />
-
-            <div className="hero-pass-bottom">
-
-              <div>
-                <span>
-                  BUILDER ID
-                </span>
-
-                <strong>
-                  {builderId}
-                </strong>
-
-                <small>
-                  GOA · INDIA
-                </small>
-              </div>
-
-              <QRCodeSVG
-                value={`HH Goa Builder ${builderId}`}
-                size={58}
-                bgColor="#f7f0df"
-                fgColor="#10251d"
-                level="M"
-              />
-
-            </div>
-
-            <div className="hero-pass-footer">
-
-              <span>
-                #FRAMEINGOA
-              </span>
-
-              <span>
-                BUILD · SHIP · CONNECT
-              </span>
-
-            </div>
-
-            <div className="pass-stamp hero-stamp">
-              GOA
-              <br />
-              BUILDER
-            </div>
-
-          </div>
-
-          <div className="coordinate-label">
-            15°29′N / 73°49′E
-          </div>
-
-          <div className="hero-note-tag">
-            <span>
-              FIELD NOTE 01
-            </span>
-
-            <strong>
-              MAKE SOMETHING REAL.
-            </strong>
-          </div>
-
+          </section>
         </div>
-
       </section>
 
-      {/* FOOTER */}
+      {/* =====================================================
+          BOTTOM WORLD
+      ===================================================== */}
 
-      <footer className="landing-footer">
+      <section className="builder-bottom-world">
+        <div className="bottom-copy">
+          <span>HACKER HOUSE GOA · 2026</span>
 
-        <div>
-          <span>
-            HH GOA 2026
-          </span>
-
-          <strong>
-            28—31 OCTOBER
-          </strong>
+          <h2>
+            Build here.
+            <br />
+            <em>Leave a mark.</em>
+          </h2>
         </div>
 
-        <div className="footer-center">
-          <span>
-            #FRAMEINGOA
-          </span>
-
-          <i />
-
-          <span>
-            GOA · INDIA
-          </span>
+        <div className="bottom-icons">
+          <div>✦</div>
+          <div>⌁</div>
+          <div>{"{}"}</div>
         </div>
 
-        <div>
-          <span>
-            247 BUILDERS
-          </span>
-
-          <strong>
-            BUILD · SHIP · LAUNCH
-          </strong>
+        <div className="bottom-palm">
+          <div className="palm-leaves">
+            <i />
+            <i />
+            <i />
+            <i />
+            <i />
+          </div>
+          <div className="palm-trunk" />
         </div>
-
-      </footer>
-
+      </section>
     </main>
   );
 }
